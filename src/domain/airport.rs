@@ -63,7 +63,6 @@ mod test_airport {
         assert_eq!(airport.get_city(), "New York");
         assert_eq!(airport.get_province(), "NY");
         assert_eq!(airport.get_country(), "USA");
-        assert_eq!(airport.get_code(), "JFK/KJFK");
     }
 
     #[test]

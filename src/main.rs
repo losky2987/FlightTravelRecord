@@ -1,5 +1,5 @@
 mod version;
-mod data_structures;
+mod domain;
 
 fn main() {
     info_page();
