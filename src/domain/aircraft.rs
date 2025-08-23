@@ -4,7 +4,7 @@ pub struct Aircraft {
     model: String,
     sub_model: String,
     manufacturer: String,
-    operator: String,
+    operator: String
 }
 
 impl Aircraft {

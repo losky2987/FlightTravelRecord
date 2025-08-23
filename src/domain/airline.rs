@@ -7,7 +7,7 @@ pub struct Airline {
     country: String,
     alliance: String, // airlines alliance, e.g. Oneworld, Star Alliance, SkyTeam
     frequent_flyer_program: String,
-    etkt_prefix: String,
+    etkt_prefix: String
 }
 
 impl Airline {

@@ -5,7 +5,7 @@ pub struct Airport {
     name: String,
     city: String,
     province: String,
-    country: String,
+    country: String
 }
 
 impl Airport {
