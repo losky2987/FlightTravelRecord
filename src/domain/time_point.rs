@@ -14,19 +14,19 @@ impl TimePoint {
     }
 
     pub fn to_string(&self) -> String {
-        return format!("{:04}-{:02}-{:02} {:02}:{:02}:{:02} (UTC{:+03})",
+        return format!("{:04}-{:02}-{:02} {:02}:{:02}:{:02} UTC{:+02}",
             self.year, self.month, self.day, self.hour, self.minute, self.second, self.utc_offset
         );
     }
 
-    pub fn calc_time_point_bias(tp1: &TimePoint, tp2: &TimePoint) -> i64 {
-        let total_seconds1 = tp1.to_seconds();
+    pub fn calc_bias_with(&self, tp2: &TimePoint) -> i64 {
+        let total_seconds1 = self.to_seconds();
         let total_seconds2 = tp2.to_seconds();
         return total_seconds1 - total_seconds2;
     }
 
-    pub fn calc_duration(timepoint1: &TimePoint, timepoint2: &TimePoint) -> u64 {
-        return TimePoint::calc_time_point_bias(timepoint1, timepoint2).abs().try_into().unwrap();
+    pub fn calc_duration_with(&self, timepoint2: &TimePoint) -> u64 {
+        return TimePoint::calc_bias_with(self, timepoint2).abs().try_into().unwrap();
     }
 
     fn to_seconds(&self) -> i64 {
@@ -68,16 +68,59 @@ mod test_time_point {
     use super::*;
 
     #[test]
+    fn test_in_same_day() {
+        let tp1 = TimePoint::new(2023, 3, 15, 12, 0, 0, 1);
+        let tp2 = TimePoint::new(2023, 3, 15, 13, 0, 0, 1);
+        assert_eq!(TimePoint::calc_duration_with(&tp1, &tp2), 3600);
+    }
+
+    #[test]
+    fn test_in_different_day() {
+        let tp1 = TimePoint::new(2023, 3, 15, 12, 0, 0, 1);
+        let tp2 = TimePoint::new(2023, 3, 16, 12, 0, 0, 1);
+        assert_eq!(TimePoint::calc_duration_with(&tp1, &tp2), 86400);
+    }
+
+    #[test]
+    fn test_leap_year() {
+        let tp1 = TimePoint::new(2020, 2, 29, 12, 0, 0, 1);
+        let tp2 = TimePoint::new(2020, 3, 1, 12, 0, 0, 1);
+        assert_eq!(TimePoint::calc_duration_with(&tp1, &tp2), 86400);
+    }
+
+    #[test]
+    fn test_with_different_timezone() {
+        let tp1 = TimePoint::new(2023, 3, 15, 12, 0, 0, 1);
+        let tp2 = TimePoint::new(2023, 3, 15, 12, 0, 0, 2);
+        assert_eq!(TimePoint::calc_duration_with(&tp1, &tp2), 3600);
+    }
+
+    #[test]
+    fn test_signed_timezone() {
+        let tp1 = TimePoint::new(2023, 3, 15, 12, 0, 0, 1);
+        let tp2 = TimePoint::new(2023, 3, 15, 12, 0, 0, -1);
+        assert_eq!(TimePoint::calc_duration_with(&tp1, &tp2), 7200);
+    }
+
+    #[test]
     fn test_calc_tp_bias_with_same_utc() {
         let tp1 = TimePoint::new(2023, 3, 15, 12, 0, 0, 1);
         let tp2 = TimePoint::new(2023, 3, 15, 13, 0, 0, 1);
-        assert_eq!(TimePoint::calc_time_point_bias(&tp1, &tp2), -3600);
+        assert_eq!(TimePoint::calc_bias_with(&tp1, &tp2), -3600);
     }
 
     #[test]
     fn test_calc_tp_bias_with_different_utc() {
         let tp1 = TimePoint::new(2023, 3, 15, 12, 0, 0, 1);
         let tp2 = TimePoint::new(2023, 3, 15, 12, 0, 0, 2);
-        assert_eq!(TimePoint::calc_time_point_bias(&tp1, &tp2), 3600);
+        assert_eq!(TimePoint::calc_bias_with(&tp1, &tp2), 3600);
+    }
+
+    #[test]
+    fn test_to_string() {
+        let tp = TimePoint::new(2023, 3, 15, 12, 0, 0, 1);
+        assert_eq!(tp.to_string(), "2023-03-15 12:00:00 UTC+1");
+        let tp2 = TimePoint::new(2023, 3, 15, 12, 0, 0, -1);
+        assert_eq!(tp2.to_string(), "2023-03-15 12:00:00 UTC-1");
     }
 }
