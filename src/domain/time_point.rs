@@ -25,9 +25,25 @@ impl TimePoint {
         return total_seconds1 - total_seconds2;
     }
 
-    pub fn calc_duration_with(&self, timepoint2: &TimePoint) -> u64 {
-        return TimePoint::calc_bias_with(self, timepoint2).abs().try_into().unwrap();
+    pub fn calc_duration_with(&self, timepoint2: &TimePoint) -> i64 {
+        return TimePoint::calc_bias_with(self, timepoint2).abs();
     }
+
+    pub fn is_after(&self, other: &TimePoint) -> bool {
+        return self.calc_bias_with(other) > 0;
+    }
+
+    pub fn is_before(&self, other: &TimePoint) -> bool {
+        return self.calc_bias_with(other) < 0;
+    }
+
+    pub fn is(&self, other: &TimePoint) -> bool {
+        return self.calc_bias_with(other) == 0;
+    }
+
+    // TODO: tp + tp, tp - tp, difficault is consider UTC
+
+    // TODO: tp convert, consider UTC
 
     fn to_seconds(&self) -> i64 {
         fn is_leap_year(year: i32) -> bool {
@@ -122,5 +138,29 @@ mod test_time_point {
         assert_eq!(tp.to_string(), "2023-03-15 12:00:00 UTC+1");
         let tp2 = TimePoint::new(2023, 3, 15, 12, 0, 0, -1);
         assert_eq!(tp2.to_string(), "2023-03-15 12:00:00 UTC-1");
+    }
+
+    #[test]
+    fn test_is_after() {
+        let tp1 = TimePoint::new(2023, 3, 15, 12, 0, 0, 1);
+        let tp2 = TimePoint::new(2023, 3, 15, 13, 0, 0, 1);
+        assert_eq!(tp1.is_after(&tp2), false);
+        assert_eq!(tp2.is_after(&tp1), true);
+    }
+
+    #[test]
+    fn test_is_before() {
+        let tp1 = TimePoint::new(2023, 3, 15, 12, 0, 0, 1);
+        let tp2 = TimePoint::new(2023, 3, 15, 13, 0, 0, 1);
+        assert_eq!(tp1.is_before(&tp2), true);
+        assert_eq!(tp2.is_before(&tp1), false);
+    }
+
+    #[test]
+    fn test_is() {
+        let tp1 = TimePoint::new(2023, 3, 15, 12, 0, 0, 1);
+        let tp2 = TimePoint::new(2023, 3, 15, 12, 0, 0, 1);
+        assert_eq!(tp1.is(&tp2), true);
+        assert_eq!(tp2.is(&tp1), true);
     }
 }
