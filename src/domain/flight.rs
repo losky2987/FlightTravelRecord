@@ -1,5 +1,3 @@
-use std::vec;
-
 use crate::domain::{aircraft::Aircraft, airline::Airline, airport::Airport, time_point::TimePoint};
 
 pub struct Flight {

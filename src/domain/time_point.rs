@@ -1,12 +1,14 @@
-#[derive(PartialEq, Eq, Debug)]
+use chrono::{Datelike, Local, Offset, Timelike};
+
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub struct TimePoint {
-    year: i32,
-    month: i32,
-    day: i32,
-    hour: i32,
-    minute: i32,
-    second: i32,
-    utc_offset: i32
+    pub year: i32,
+    pub month: i32,
+    pub day: i32,
+    pub hour: i32,
+    pub minute: i32,
+    pub second: i32,
+    pub utc_offset: i32
 }
 
 impl TimePoint {
@@ -122,7 +124,7 @@ impl TimePoint {
         self.utc_offset = new_utc_zone;
     }
 
-    fn after(&mut self, year: i32, month: i32, day: i32, hour: i32, minute: i32, second: i32){
+    pub fn after(&mut self, year: i32, month: i32, day: i32, hour: i32, minute: i32, second: i32){
         self.second += if second >= 0 {second} else {0};
         self.minute += if minute >= 0 {minute} else {0};
         self.hour += if hour >= 0 {hour} else {0};
@@ -162,7 +164,7 @@ impl TimePoint {
         }
     }
 
-    fn before(&mut self, year: i32, month: i32, day: i32, hour: i32, minute: i32, second: i32){
+    pub fn before(&mut self, year: i32, month: i32, day: i32, hour: i32, minute: i32, second: i32){
         self.second -= if second >= 0 { second } else { 0 };
         self.minute -= if minute >= 0 { minute } else { 0 };
         self.hour -= if hour >= 0 { hour } else { 0 };
@@ -198,6 +200,18 @@ impl TimePoint {
             }
             self.day += TimePoint::month_to_days(self.month, self.year);
         }
+    }
+
+    pub fn get_now(&mut self) {
+        let now = Local::now();
+        let utc = now.offset().fix().local_minus_utc() / 3600;
+        self.year = now.year();
+        self.month = now.month() as i32;
+        self.day = now.day() as i32;
+        self.hour = now.hour() as i32;
+        self.minute = now.minute() as i32;
+        self.second = now.second() as i32;
+        self.utc_offset = utc;
     }
 
     fn is_leap_year(year: i32) -> bool {
@@ -413,5 +427,12 @@ mod test_time_point {
         assert_eq!(origin.to_string(), "2024-09-28 21:52:17 UTC+8");
         origin.before(0, 0, 0, 0, 0, 20); // test second overflow
         assert_eq!(origin.to_string(), "2024-09-28 21:51:57 UTC+8");
+    }
+
+    #[test] // this test only valid when your system time zone at UTC+8
+    fn test_get_now_utc() {
+        let mut test = TimePoint::new(0, 0, 0, 0, 0, 0, 0);
+        test.get_now();
+        assert_eq!(test.utc_offset, 8);
     }
 }
